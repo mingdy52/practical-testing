@@ -1,8 +1,12 @@
 package sample.cafekiosk.unit;
 
 import org.junit.jupiter.api.Test;
+import sample.cafekiosk.unit.Order.Order;
 import sample.cafekiosk.unit.beverage.Americano;
 import sample.cafekiosk.unit.beverage.Latte;
+
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -49,7 +53,7 @@ class CafeKioskTest {
      *      해피 -> 3
      *      예외 -> 2
      */
-    
+
     // 해피케이스
     @Test
     void addSeveralBeverages() {
@@ -97,6 +101,65 @@ class CafeKioskTest {
 
         cafeKiosk.clear();
         assertThat(cafeKiosk.getBeverages()).isEmpty();
+    }
+
+    @Test
+    void createOrder() {
+        CafeKiosk cafeKiosk = new CafeKiosk();
+        Americano americano = new Americano();
+
+        cafeKiosk.add(americano);
+        Order order = cafeKiosk.createOrder();
+        assertThat(order.getBeverages().get(0).getName()).isEqualTo("아메리카노");
+        // 테스트 시간에 따라 테스트 성공 여부가 달라진다.
+    }
+
+    /**
+     * 테스트하기 어려운 영역을 구분하고 분리해야 한다.
+     *
+     *  테스트 가능한 코드고 있을 때, 만약 테스트가 어려운 조건이 추가된다면?
+     *       -> 전체 테스트 불가능한 상태가 된다.
+     *
+     *       테스트가 어려운 영역을 외부로 분리한다.
+     *           예시: 현재 시간을 사용하는 코드
+     *               - 프로덕션 코드에서는 현대 시간을 넣어주고 테스트 할 때는 원하는 값으로 넣는다.
+     *       "시간", "랜덤", "환경 변수", "네트워크 호출" 같은 의존성을 외부에서 주입할 수 있도록 설계하는 것이 중요하다.
+     *
+     *       테스트하기 어려운 영역이 분리되면?
+     *            -> 나머지 대부분의 로직은 테스트 가능한 상태로 유지된다.
+     *
+     * 테스트하기 어려운 영역
+     *      - 관측할 때마다 다른 값에 의존하는 코드
+     *          : 현재 날짜/시간, 랜덤 값, 전역 변수/함수, 사용자 입력 등
+     *      - 외부 세계에 영향을 주는 코드
+     *          : 표준 출력, 메시지 발송, 데이터베이스에 기록하기 등
+     *
+     * 테스트하기 쉬운 함수 - 순수함수(Pure function): 외부 세계와 단절된 함수
+     *     - 같은 입력에는 항상 같은 결과
+     *     - 외부 세상과 단절된 형태
+     *     - 테스트하기 쉬운 코드
+     *
+     */
+    @Test
+    void createOrderWithCurrentTime() {
+        CafeKiosk cafeKiosk = new CafeKiosk();
+        Americano americano = new Americano();
+
+        cafeKiosk.add(americano);
+
+        Order order = cafeKiosk.createOrder(LocalDateTime.of(2025, 6, 20, 10, 0));
+        assertThat(order.getBeverages().get(0).getName()).isEqualTo("아메리카노");
+    }
+
+    @Test
+    void createOrderOutsideOpenTime() {
+        CafeKiosk cafeKiosk = new CafeKiosk();
+        Americano americano = new Americano();
+
+        cafeKiosk.add(americano);
+        assertThatThrownBy(() -> cafeKiosk.createOrder(LocalDateTime.of(2025, 6, 20, 9, 59)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("주문 시간이 아닙니다. 관리자에게 문의하세요.");
     }
 
 }
