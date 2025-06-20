@@ -5,6 +5,7 @@ import sample.cafekiosk.unit.beverage.Americano;
 import sample.cafekiosk.unit.beverage.Latte;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CafeKioskTest {
@@ -35,6 +36,41 @@ class CafeKioskTest {
 
         assertThat(cafeKiosk.getBeverages()).hasSize(1);
         assertThat(cafeKiosk.getBeverages().get(0).getName()).isEqualTo("아메리카노");
+    }
+
+    /**
+     * 암묵적이거나 아직 드러나지 않은 요구사항이 있는가?
+     * 테스트 케이스를 세분화 한 다음에 경계값이 존재하는 경우에는 경계값 에서 항상 테스트를 할 수 있도록 고민해야 한다.
+     *
+     * 1. 해피 케이스
+     *    -> 경계값 테스트 :범위(이상, 이하, 초과, 미만), 구간, 날짜 등
+     * 2. 예외 케이스
+     *      조건: 3 이상
+     *      해피 -> 3
+     *      예외 -> 2
+     */
+    
+    // 해피케이스
+    @Test
+    void addSeveralBeverages() {
+        CafeKiosk cafeKiosk = new CafeKiosk();
+        Americano americano = new Americano();
+
+        cafeKiosk.add(americano, 2);
+
+        assertThat(cafeKiosk.getBeverages().get(0)).isEqualTo(americano);
+        assertThat(cafeKiosk.getBeverages().get(1).getName()).isEqualTo("아메리카노");
+    }
+
+    // 예외케이스
+    @Test
+    void addZeroBeverages() {
+        CafeKiosk cafeKiosk = new CafeKiosk();
+        Americano americano = new Americano();
+
+        assertThatThrownBy(() -> cafeKiosk.add(americano, 0))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("음료는 1잔 이상 주문하실 수 있습니다.");
     }
 
     @Test
